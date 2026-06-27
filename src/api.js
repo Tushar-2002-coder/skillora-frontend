@@ -1,15 +1,14 @@
 import axios from "axios";
 
-// 🌐 Centralized API base URL.
-// Set VITE_API_URL in a .env file to point to your deployed backend.
-// Falls back to localhost for local development.
+// Yahan sirf backend ka base URL rakho
 export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
+  // Yahan se '/api' hata do, kyunki tum har request mein /api likh rahe ho
+  baseURL: API_BASE_URL, 
 });
 
-// Automatically attach the JWT token (if present) to every request
+// Interceptors waise hi rahenge...
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -18,13 +17,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// If the token is invalid/expired anywhere in the app, log the user out cleanly
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      window.location.href = '/login'; // Optional: Redirect to login
     }
     return Promise.reject(error);
   }
