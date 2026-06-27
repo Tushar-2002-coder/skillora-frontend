@@ -4,8 +4,7 @@ import axios from "axios";
 export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const api = axios.create({
-  // Yahan se '/api' hata do, kyunki tum har request mein /api likh rahe ho
-  baseURL: API_BASE_URL, 
+  baseURL: `${API_BASE_URL}/api`, // Yahan '/api' add karo
 });
 
 // Interceptors waise hi rahenge...
