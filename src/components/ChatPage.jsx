@@ -18,15 +18,16 @@ export default function ChatPage({ currentUser, conversationId: forcedConversati
 
 useEffect(() => {
   const handleReceive = (data) => {
-    // Current ref ka use karke ensure karo ki hum sahi state dekh rahe hain
+    // ⚠️ Yahan activeConversationId (state) nahi, Ref use karna hai
     if (data.conversationId === activeConversationIdRef.current) {
       setMessages((prev) => [...prev, data]);
+    } else {
+      console.log("Message received for a different conversation, ignoring...");
     }
   };
- 
+
   socket.on('receive_message', handleReceive);
   
-  // Cleanup zaroori hai
   return () => {
     socket.off('receive_message', handleReceive);
   };
@@ -34,9 +35,12 @@ useEffect(() => {
 
   // Keep a ref in sync so the socket callback (captured once) always sees the latest value
   const activeConversationIdRef = useRef(activeConversationId);
+
+
   useEffect(() => {
     activeConversationIdRef.current = activeConversationId;
   }, [activeConversationId]);
+
 
   // Admin: load list of all student conversations
   useEffect(() => {
@@ -50,15 +54,21 @@ useEffect(() => {
   }, [isAdmin, forcedConversationId, myConversationId]);
 
   // Load message history + join socket room whenever active conversation changes
-  useEffect(() => {
-    if (!activeConversationId) return;
 
-    socket.emit('join_conversation', activeConversationId);
+    useEffect(() => {
+  if (!activeConversationId) return;
 
-    api.get(`/chat/${activeConversationId}`)
-      .then((res) => setMessages(res.data))
-      .catch((err) => console.error(err));
-  }, [activeConversationId]);
+  // Purani room se nikalna (Optional but recommended)
+  // socket.emit('leave_conversation', previousId); 
+  
+  socket.emit('join_conversation', activeConversationId);
+
+  api.get(`/chat/${activeConversationId}`)
+    .then((res) => setMessages(res.data))
+    .catch((err) => console.error(err));
+}, [activeConversationId]);
+
+
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
