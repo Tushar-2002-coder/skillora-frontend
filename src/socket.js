@@ -7,4 +7,6 @@ const socket = io(SOCKET_URL, {
   withCredentials: true, // Yeh zaroori hai kyunki tumne server par credentials: true rakha hai
 });
 
+window.socket = socket; 
+
 export default socket;
