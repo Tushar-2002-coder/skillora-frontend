@@ -74,17 +74,12 @@ export default function AuthPortal({ onAuthSuccess }) {
 
           if (!window.googleInitialized) {
 
-            window.google.accounts.id.initialize({
-
-              client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "665381937501-ifp6c5erg6ukptmv4s2fs52a7vabddor.apps.googleusercontent.com",
-
-              callback: handleGoogleSuccess,
-
-              context: "signin",
-
-              ux_mode: "popup"
-
-            });
+           
+window.google.accounts.id.initialize({
+  client_id: "665381937501-ifp6c5erg6ukptmv4s2fs52a7vabddor.apps.googleusercontent.com",
+  callback: handleGoogleSuccess,
+  ux_mode: "popup" // Isse "redirect" karke dekho agar popup block ho raha hai
+});
 
             window.googleInitialized = true;
 
