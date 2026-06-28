@@ -28,134 +28,64 @@ export default function AuthPortal({ onAuthSuccess }) {
 
 
 
-  // 🌐 Google Auth Success Callback Pipeline
-
+// 1. Google Auth Success Callback
   const handleGoogleSuccess = async (credentialResponse) => {
-
-    setStatus('Google Sign-In Synchronizing... 🔄');
-
+    setStatus('Syncing with Server... 🔄');
     try {
-
       const res = await api.post('/auth/google-login', {
-
         token: credentialResponse.credential
-
       });
-
       localStorage.setItem('token', res.data.token);
-
       localStorage.setItem('user', JSON.stringify(res.data.user));
-
-     
-
+      
       if (onAuthSuccess) onAuthSuccess(res.data.user);
-
       navigate('/dashboard');
-
     } catch (error) {
-
-      setStatus(error.response?.data?.message || 'Google Authentication Failed! ❌');
-
+      setStatus('Google Auth Failed! ❌');
     }
-
   };
 
-
-
-  // ⚡ NATIVE GOOGLE INITIALIZATION HOOK
-
+  // 2. Optimized Initialization
   useEffect(() => {
-
-    const initializeGoogleAuth = () => {
-
-      try {
-
-        if (typeof window !== 'undefined' && window.google && window.google.accounts) {
-
-          if (!window.googleInitialized) {
-
-           
-window.google.accounts.id.initialize({
-  client_id: "665381937501-ifp6c5erg6ukptmv4s2fs52a7vabddor.apps.googleusercontent.com",
-  callback: handleGoogleSuccess,
-  ux_mode: "popup" // Isse "redirect" karke dekho agar popup block ho raha hai
-});
-
-            window.googleInitialized = true;
-
-          }
-
-
-
-          if (screen === 'login') {
-
-            setTimeout(() => {
-
-              const btnElement = document.getElementById("googleBtnWrapper");
-
-              if (btnElement && window.google && window.google.accounts) {
-
-                window.google.accounts.id.renderButton(btnElement, {
-
-                  theme: "outline",
-
-                  size: "large",
-
-                  text: "signin_with",
-
-                  shape: "rectangular",
-
-                  width: btnElement.offsetWidth
-
-                });
-
-              }
-
-            }, 150);
-
-          }
-
-        } else {
-
-          setTimeout(initializeGoogleAuth, 300);
-
-        }
-
-      } catch (err) {
-
-        console.error("Google script mapping delay handling:", err);
-
-      }
-
-    };
-
-
-
-    const scriptExists = document.getElementById('google-gsi-client');
-
-    if (!scriptExists) {
-
+    // Sirf tabhi load karo agar script exist nahi karti
+    if (!document.getElementById('google-gsi-client')) {
       const script = document.createElement('script');
-
       script.id = 'google-gsi-client';
-
       script.src = 'https://accounts.google.com/gsi/client';
-
       script.async = true;
-
       script.defer = true;
-
-      script.onload = () => setTimeout(initializeGoogleAuth, 100);
-
       document.head.appendChild(script);
-
-    } else {
-
-      initializeGoogleAuth();
-
     }
 
-  }, [screen]);
+    const init = () => {
+      if (window.google?.accounts) {
+        window.google.accounts.id.initialize({
+          client_id: "665381937501-ifp6c5erg6ukptmv4s2fs52a7vabddor.apps.googleusercontent.com",
+          callback: handleGoogleSuccess,
+          ux_mode: "popup"
+        });
+
+        const btnElement = document.getElementById("googleBtnWrapper");
+        if (btnElement) {
+          window.google.accounts.id.renderButton(btnElement, {
+            theme: "outline",
+            size: "large",
+            type: "standard"
+          });
+        }
+      }
+    };
+
+    // Google script load hone ka wait karo
+    const interval = setInterval(() => {
+      if (window.google?.accounts) {
+        init();
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [screen]); // Screen change hone par button re-render hoga
 
 
 
