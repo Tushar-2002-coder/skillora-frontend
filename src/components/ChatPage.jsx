@@ -16,19 +16,21 @@ export default function ChatPage({ currentUser, conversationId: forcedConversati
   // Admins can see a list of all student conversations.
   const myConversationId = forcedConversationId || `${currentUser._id}_support`;
 
-  useEffect(() => {
-    const handleReceive = (data) => {
-      // Only append if it belongs to the conversation currently open
-      if (data.conversationId === activeConversationIdRef.current) {
-        setMessages((prev) => [...prev, data]);
-      }
-    };
-
-    socket.on('receive_message', handleReceive);
-    return () => {
-      socket.off('receive_message', handleReceive);
-    };
-  }, []);
+useEffect(() => {
+  const handleReceive = (data) => {
+    // Current ref ka use karke ensure karo ki hum sahi state dekh rahe hain
+    if (data.conversationId === activeConversationIdRef.current) {
+      setMessages((prev) => [...prev, data]);
+    }
+  };
+ 
+  socket.on('receive_message', handleReceive);
+  
+  // Cleanup zaroori hai
+  return () => {
+    socket.off('receive_message', handleReceive);
+  };
+}, [activeConversationId]);
 
   // Keep a ref in sync so the socket callback (captured once) always sees the latest value
   const activeConversationIdRef = useRef(activeConversationId);

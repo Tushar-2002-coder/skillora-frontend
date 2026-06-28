@@ -1,10 +1,10 @@
 import { io } from "socket.io-client";
 import { API_BASE_URL } from "./api";
 
-// Ek hi socket connection poore app mein reuse hota hai
-// (chat, live quiz leaderboard, aur notifications sab isi se baat karte hain)
-const socket = io(API_BASE_URL, {
-  autoConnect: true,
+const SOCKET_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const socket = io(SOCKET_URL, {
+  withCredentials: true, // Yeh zaroori hai kyunki tumne server par credentials: true rakha hai
 });
 
 export default socket;
