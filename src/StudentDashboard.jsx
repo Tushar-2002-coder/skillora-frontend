@@ -39,7 +39,7 @@ export default function StudentDashboard({ user, onLogout, onUserUpdate }) {
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
       {/* Top Navigation Bar */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#1d5ec2] flex items-center justify-center text-xl shadow-sm">
@@ -106,7 +106,7 @@ export default function StudentDashboard({ user, onLogout, onUserUpdate }) {
           <>
             {/* Welcome + Progress Banner */}
             <div className="bg-gradient-to-r from-[#1d5ec2] to-[#3b7de0] rounded-2xl p-6 md:p-8 mb-8 text-white relative overflow-">
-              <div className="relative z-0">
+              <div className="relative z-10">
                 <h2 className="text-2xl md:text-3xl font-black mb-1">Welcome back, {user.name?.split(' ')[0]} 👋</h2>
                 <p className="text-blue-100 font-medium text-sm mb-6">Pick up where you left off, or explore something new.</p>
 
