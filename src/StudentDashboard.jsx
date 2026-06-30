@@ -105,8 +105,8 @@ export default function StudentDashboard({ user, onLogout, onUserUpdate }) {
         {activeTab === 'library' && (
           <>
             {/* Welcome + Progress Banner */}
-            <div className="bg-gradient-to-r from-[#1d5ec2] to-[#3b7de0] rounded-2xl p-6 md:p-8 mb-8 text-white relative overflow-hidden">
-              <div className="relative z-10">
+            <div className="bg-gradient-to-r from-[#1d5ec2] to-[#3b7de0] rounded-2xl p-6 md:p-8 mb-8 text-white relative overflow-">
+              <div className="relative z-0">
                 <h2 className="text-2xl md:text-3xl font-black mb-1">Welcome back, {user.name?.split(' ')[0]} 👋</h2>
                 <p className="text-blue-100 font-medium text-sm mb-6">Pick up where you left off, or explore something new.</p>
 
