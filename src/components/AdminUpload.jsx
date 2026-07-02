@@ -12,20 +12,20 @@ export default function AdminUpload({ onUploadSuccess }) {
 
   // 🛠️ Metadata Fetch Logic
   const handleAutoFill = async () => {
-    if (!formData.embedUrl) return alert("Pehle YouTube link daalo!");
-    try {
-      // Backend ko call kar rahe hain metadata ke liye
-      const res = await api.post('/videos/fetch-metadata', { videoUrl: formData.embedUrl });
-      
-      setFormData(prev => ({
-        ...prev,
-        title: res.data.title,
-        thumbnailUrl: res.data.thumbnail // API se aaye hue thumbnail ko set karo
-      }));
-    } catch (err) {
-      alert("Metadata fetch nahi ho paya, link check karo!");
-    }
-  };
+  if (!formData.embedUrl) return alert("Pehle YouTube link daalo!");
+  try {
+    const res = await api.post('/videos/fetch-metadata', { videoUrl: formData.embedUrl });
+    setFormData(prev => ({
+      ...prev,
+      title: res.data.title,
+      thumbnailUrl: res.data.thumbnail
+    }));
+  } catch (err) {
+    // Yahan err.response.data.message check karo
+    console.error("Full error:", err);
+    alert(`Error: ${err.response?.data?.message || "Kuch galat ho gaya"}`);
+  }
+};
 
   const formatUrl = (url) => {
     if (url.includes('watch?v=')) return url.replace('watch?v=', 'embed/');
