@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from './api';
 import socket from './socket';
-import AdminUpload from './components/AdminUpload';
 import VideoCard from './components/VideoCard';
 import ChatPage from './components/ChatPage';
 import QuizBuilder from './components/QuizBuilder';
@@ -215,20 +214,13 @@ export default function AdminPanel({ user, onLogout, onUserUpdate }) {
                   <h2 className="text-2xl font-black text-slate-900">Course Videos</h2>
                   <p className="text-sm text-slate-500 font-medium">{videos.length} videos in the library</p>
                 </div>
-                <button
-                  onClick={() => setShowUploadForm((s) => !s)}
-                  className="flex items-center gap-2 bg-[#1d5ec2] hover:bg-[#154fa5] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-sm"
-                >
-                  <UploadCloud size={16} /> {showUploadForm ? 'Close' : 'Upload Video'}
+                <button onClick={() => setActiveTab('youtube')} 
+                  className="flex items-center gap-2 bg-[#1d5ec2] hover:bg-[#154fa5] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-sm">
+                    <Youtube size={16} /> Import from YouTube
                 </button>
               </div>
 
-              {showUploadForm && (
-                <div className="mb-8 max-w-xl">
-                  <AdminUpload onUploadSuccess={() => { loadVideos(); setShowUploadForm(false); }} />
-                </div>
-              )}
-
+            
               {loading && <p className="text-sm text-slate-400 font-bold">Loading videos...</p>}
 
               {!loading && videos.length === 0 && (
