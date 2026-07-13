@@ -11,9 +11,10 @@ import QuizHistory from './components/QuizHistory';
 import Profile from './components/Profile';
 import NotificationBell from './components/NotificationBell';
 import MiniCalculator from './components/MiniCalculator';
+import YouTubeImport from './components/YouTubeImport';
 import {
   LayoutGrid, Users, MessageSquare, UploadCloud, LogOut, Trash2,
-  Trophy, History, UserCircle, Bell, PlusCircle, FileCode2,
+  Trophy, History, UserCircle, Bell, PlusCircle, FileCode2,Youtube
 } from 'lucide-react';
 
 export default function AdminPanel({ user, onLogout, onUserUpdate }) {
@@ -113,6 +114,7 @@ export default function AdminPanel({ user, onLogout, onUserUpdate }) {
     { id: 'scores', label: 'Quiz Scores', icon: History },
     { id: 'chat', label: 'Support Chat', icon: MessageSquare },
     { id: 'notify', label: 'Notify', icon: Bell },
+    { id: 'youtube', label: 'YT Import', icon: Youtube },
     { id: 'profile', label: 'Profile', icon: UserCircle },
   ];
 
@@ -416,7 +418,9 @@ export default function AdminPanel({ user, onLogout, onUserUpdate }) {
           )}
 
           {activeTab === 'profile' && (
-            <div>
+            <div> {activeTab === 'youtube' && (
+            <YouTubeImport />
+          )}
               <h2 className="text-2xl font-black text-slate-900 mb-6">My Profile</h2>
               <Profile user={user} onUpdate={onUserUpdate} />
             </div>
