@@ -409,10 +409,13 @@ export default function AdminPanel({ user, onLogout, onUserUpdate }) {
             </div>
           )}
 
-          {activeTab === 'profile' && (
-            <div> {activeTab === 'youtube' && (
-            <YouTubeImport />
-          )}
+
+{activeTab === "youtube" && (
+  <YouTubeImport />
+)}
+
+          {activeTab === "profile" && (
+  <div>
               <h2 className="text-2xl font-black text-slate-900 mb-6">My Profile</h2>
               <Profile user={user} onUpdate={onUserUpdate} />
             </div>
