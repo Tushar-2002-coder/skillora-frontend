@@ -1,83 +1,109 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+// components/VideoLibrary.jsx
+// Personalized video grid — backend algorithm se sorted order aata hai
+import { useEffect, useState } from 'react';
 import api from '../api';
+import { useNavigate } from 'react-router-dom';
+import VideoCard from './VideoCard';
+import SkeletonCard from './SkeletonCard';
+import { Search, Filter } from 'lucide-react';
 
-export default function VideoPlayer() {
-  const { id } = useParams();
-  const [video, setVideo] = useState(null);
-  const [marking, setMarking] = useState(false);
-  const [completed, setCompleted] = useState(false);
+export default function VideoLibrary() {
+  const [videos, setVideos]       = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [searchQuery, setSearch]  = useState('');
+  const [activeCategory, setCat]  = useState('All');
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.get(`/videos/${id}`)
-      .then((res) => setVideo(res.data))
-      .catch((err) => console.error("Error fetching video:", err));
-  }, [id]);
+    api.get('/videos')
+      .then((res) => setVideos(res.data))
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
 
-  const handleMarkComplete = async () => {
-    setMarking(true);
-    try {
-      await api.post('/users/progress', { videoId: id, completed: true });
-      setCompleted(true);
-    } catch (err) {
-      console.error("Error updating progress:", err);
-    } finally {
-      setMarking(false);
+    // Scroll restore
+    const saved = sessionStorage.getItem('scrollPosition');
+    if (saved) {
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(saved));
+        sessionStorage.removeItem('scrollPosition');
+      }, 100);
     }
+  }, []);
+
+  const handleVideoClick = (videoId) => {
+    sessionStorage.setItem('scrollPosition', window.scrollY);
+    navigate(`/video/${videoId}`);
   };
 
-  if (!video) return <div className="p-10 text-center font-bold">Loading Engine...</div>;
+  // Unique categories from loaded videos
+  const categories = ['All', ...Array.from(new Set(videos.map(v => v.category).filter(Boolean)))];
+
+  const filtered = videos.filter((v) => {
+    const matchSearch = v.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchCat = activeCategory === 'All' || v.category === activeCategory;
+    return matchSearch && matchCat;
+  });
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      {/* Back Button */}
-      <button 
-        onClick={() => navigate(-1)} 
-        className="flex items-center gap-2 mb-6 text-indigo-600 hover:text-indigo-800 transition font-black text-sm"
-      >
-        ← BACK
-      </button>
-
-      <div className="grid grid-cols-1 lg:grid-cols-[70%_30%] gap-6">
-        {/* Player Section */}
-        <div className="space-y-4">
-          <div className="bg-black aspect-video rounded-2xl overflow-hidden shadow-xl">
-            <iframe 
-              src={video.embedUrl} 
-              title={video.title}
-              className="w-full h-full"
-              allowFullScreen
-            />
-          </div>
-          <h1 className="text-2xl font-black text-slate-900">{video.title}</h1>
-
-          <button
-            onClick={handleMarkComplete}
-            disabled={marking || completed}
-            className={`px-5 py-2.5 rounded-xl text-sm font-black transition ${
-              completed
-                ? 'bg-emerald-100 text-emerald-700 cursor-default'
-                : 'bg-indigo-600 text-white hover:bg-indigo-700'
-            }`}
-          >
-            {completed ? '✅ Marked as Completed' : marking ? 'Saving...' : 'Mark as Completed'}
-          </button>
+    <div className="space-y-5">
+      {/* Search + Filter bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search videos..."
+            value={searchQuery}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 bg-white shadow-sm"
+          />
         </div>
 
-        {/* Resources Section */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
-          <h3 className="font-black text-lg mb-4">Course Resources</h3>
-          <div className="space-y-3">
-             <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl text-xs font-bold text-indigo-700">
-               📄 {video.title} - Notes.pdf
-             </div>
-             <button className="w-full py-2 bg-slate-900 text-white rounded-xl text-xs font-black">
-               Download Materials
-             </button>
+        {categories.length > 1 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 shrink-0">
+            <Filter size={13} className="text-slate-400 shrink-0 ml-1" />
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCat(cat)}
+                className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shrink-0
+                  ${activeCategory === cat
+                    ? 'bg-[#1d5ec2] text-white'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Algorithm hint banner — shows when personalization is active */}
+      {!loading && videos.length > 0 && (
+        <div className="flex items-center gap-2 text-[11px] font-bold text-indigo-500">
+          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+          Videos sorted by your watch preferences
+        </div>
+      )}
+
+      {/* Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading && Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+
+        {!loading && filtered.map((video) => (
+          <div key={video._id} onClick={() => handleVideoClick(video._id)} className="cursor-pointer">
+            <VideoCard video={video} />
+          </div>
+        ))}
+      </div>
+
+      {!loading && filtered.length === 0 && (
+        <div className="text-center py-16 text-slate-400 font-bold">
+          {searchQuery || activeCategory !== 'All'
+            ? 'No videos match your search/filter.'
+            : 'No videos available yet.'}
+        </div>
+      )}
     </div>
   );
 }
