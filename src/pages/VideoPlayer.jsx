@@ -35,6 +35,20 @@ export default function VideoLibrary() {
     navigate(`/video/${videoId}`);
   };
 
+
+  useEffect(() => {
+    if (videoRef.current) {
+        videoRef.current.play(); // Page open hote hi video start
+    }
+}, [videoId]); // Jab bhi videoId change ho
+
+
+<video 
+    ref={videoRef} 
+    onEnded={handleAutoPlayNext} // Video khatam hone par ye function chalega
+    src={currentVideoUrl} 
+/>
+
   // Unique categories from loaded videos
   const categories = ['All', ...Array.from(new Set(videos.map(v => v.category).filter(Boolean)))];
 
