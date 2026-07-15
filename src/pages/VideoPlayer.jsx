@@ -31,7 +31,7 @@ export default function VideoPlayer() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-8">
-      <div className="grid grid-cols-1 lg:grid-cols-[70%_30%] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[0%_100%] gap-6">
         {/* Player Section */}
         <div className="space-y-4">
           <div className="bg-black aspect-video rounded-2xl overflow-hidden shadow-xl">
