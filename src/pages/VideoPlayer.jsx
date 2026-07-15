@@ -36,15 +36,20 @@ export default function VideoPlayer() {
         <div className="space-y-4">
           <div className="bg-black aspect-video rounded-2xl overflow-hidden shadow-xl">
             <YouTube
-              videoId={video.embedUrl.split('v=')[1]} // URL se ID extract karna
-              opts={{ 
-                width: '100%', 
-                height: '100%', 
-                playerVars: { autoplay: 1 } 
-              }}
-              onReady={onPlayerReady}
-              onEnd={handleNextVideo} // Auto-play Next Trigger
-            />
+  videoId={video.videoId}
+  opts={{
+    width: '100%',
+    height: '100%',
+    playerVars: {
+      autoplay: 1,
+      // Yeh line sabse important hai
+      origin: 'https://skillora-frontend-alpha.vercel.app', 
+      widget_referrer: 'https://skillora-frontend-alpha.vercel.app'
+    },
+  }}
+  onReady={onPlayerReady}
+  onEnd={handleNextVideo}
+/>
           </div>
           <h1 className="text-2xl font-black text-slate-900">{video.title}</h1>
         </div>
