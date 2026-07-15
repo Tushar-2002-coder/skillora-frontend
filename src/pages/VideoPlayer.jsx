@@ -1,123 +1,57 @@
-// components/VideoLibrary.jsx
-// Personalized video grid — backend algorithm se sorted order aata hai
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import YouTube from 'react-youtube';
 import api from '../api';
-import { useNavigate } from 'react-router-dom';
-import VideoCard from './VideoCard';
-import SkeletonCard from './SkeletonCard';
-import { Search, Filter } from 'lucide-react';
 
-export default function VideoLibrary() {
-  const [videos, setVideos]       = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [searchQuery, setSearch]  = useState('');
-  const [activeCategory, setCat]  = useState('All');
+export default function VideoPage() {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [video, setVideo] = useState(null);
+  const [related, setRelated] = useState([]);
 
   useEffect(() => {
-    api.get('/videos')
-      .then((res) => setVideos(res.data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    // 1. Video fetch karein
+    api.get(`/videos/${id}`).then(res => setVideo(res.data));
+    // 2. Related videos fetch karein
+    api.get(`/videos/${id}/related`).then(res => setRelated(res.data));
+  }, [id]);
 
-    // Scroll restore
-    const saved = sessionStorage.getItem('scrollPosition');
-    if (saved) {
-      setTimeout(() => {
-        window.scrollTo(0, parseInt(saved));
-        sessionStorage.removeItem('scrollPosition');
-      }, 100);
-    }
-  }, []);
-
-  const handleVideoClick = (videoId) => {
-    sessionStorage.setItem('scrollPosition', window.scrollY);
-    navigate(`/video/${videoId}`);
+  const onPlayerReady = (event) => {
+    event.target.playVideo(); // Auto-play on load
   };
 
-
-  useEffect(() => {
-    if (videoRef.current) {
-        videoRef.current.play(); // Page open hote hi video start
+  const onVideoEnd = () => {
+    // Agar next video available hai, toh usey open karo
+    if (related.length > 0) {
+      navigate(`/video/${related[0]._id}`);
     }
-}, [videoId]); // Jab bhi videoId change ho
+  };
 
-
-<video 
-    ref={videoRef} 
-    onEnded={handleAutoPlayNext} // Video khatam hone par ye function chalega
-    src={currentVideoUrl} 
-/>
-
-  // Unique categories from loaded videos
-  const categories = ['All', ...Array.from(new Set(videos.map(v => v.category).filter(Boolean)))];
-
-  const filtered = videos.filter((v) => {
-    const matchSearch = v.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchCat = activeCategory === 'All' || v.category === activeCategory;
-    return matchSearch && matchCat;
-  });
+  if (!video) return <div>Loading...</div>;
 
   return (
-    <div className="space-y-5">
-      {/* Search + Filter bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search videos..."
-            value={searchQuery}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 bg-white shadow-sm"
-          />
-        </div>
-
-        {categories.length > 1 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 shrink-0">
-            <Filter size={13} className="text-slate-400 shrink-0 ml-1" />
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setCat(cat)}
-                className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shrink-0
-                  ${activeCategory === cat
-                    ? 'bg-[#1d5ec2] text-white'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        )}
+    <div className="p-5 flex flex-col lg:flex-row gap-6">
+      {/* Video Player Section */}
+      <div className="flex-1">
+        <YouTube
+          videoId={video.embedUrl.split('v=')[1]} // Agar URL pura hai to ID extract karo
+          opts={{ width: '100%', height: '500', playerVars: { autoplay: 1 } }}
+          onReady={onPlayerReady}
+          onEnd={onVideoEnd}
+        />
+        <h1 className="text-2xl font-bold mt-4">{video.title}</h1>
       </div>
 
-      {/* Algorithm hint banner — shows when personalization is active */}
-      {!loading && videos.length > 0 && (
-        <div className="flex items-center gap-2 text-[11px] font-bold text-indigo-500">
-          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-          Videos sorted by your watch preferences
-        </div>
-      )}
-
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading && Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
-
-        {!loading && filtered.map((video) => (
-          <div key={video._id} onClick={() => handleVideoClick(video._id)} className="cursor-pointer">
-            <VideoCard video={video} />
+      {/* Sidebar: Recommendations */}
+      <div className="lg:w-1/3">
+        <h2 className="font-bold mb-4">Up Next / Recommendations</h2>
+        {related.map((v) => (
+          <div key={v._id} onClick={() => navigate(`/video/${v._id}`)} className="cursor-pointer mb-3 flex gap-2">
+            <img src={v.thumbnailUrl} className="w-24 h-16 rounded object-cover" />
+            <p className="text-sm font-semibold">{v.title}</p>
           </div>
         ))}
       </div>
-
-      {!loading && filtered.length === 0 && (
-        <div className="text-center py-16 text-slate-400 font-bold">
-          {searchQuery || activeCategory !== 'All'
-            ? 'No videos match your search/filter.'
-            : 'No videos available yet.'}
-        </div>
-      )}
     </div>
   );
 }
